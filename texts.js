@@ -10,7 +10,7 @@ window.TEXTS = [
   paras: [
     "Ter herinnering aan de Oorlogsperiode\n1914 — 1917\nMej. A. de Byll Nachenius\nals blijk van erkentelijkheid\nnamens de Belgen\naangeboden.",
     "<em>Ondertekend (links):</em>\nJ. Tiebacke [?]\nE. Van Uxel [?]\nFamilie J. Decker\nFamilie Lauwers\nFamilie Fehtershaussen [?]\nFamilie Dedrooy [?]\nFamilie Morioux [?]\nFamilie P. H. De Mol [?]\nAckermans\nB. Roegiers\nDe Deurwaarder\nFamilie Roegiers\nM. Tijl [?]\nFamilie Bouchier [?]",
-    "<em>Ondertekend (rechts):</em>\nJules Verwest\nC. Sperlaeken\nB. Van Winckel\nW. Sansen Daumie [?]\nGustave de Smet\nJules Desmet\nMme Goyvaerts"
+    "<em>Ondertekend (rechts):</em>\nJules Verwest\nC. Sperlaeken\nB. Van Winckel\nW. Jansen Daumie [?]\nGustave De Smet\nJules De Smet\nMme Goyvaerts"
   ]
 },
 {
