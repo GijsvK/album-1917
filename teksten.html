@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Teksten uit het album</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap">
+<style>
+/* Layout: leesbare kolom op papierkleur; per tekst een kleine afbeelding van het origineel ernaast. Bewust één lichte papiersfeer. */
+:root{
+  --bg:#efe6d4;
+  --paper:#f7f0e2;
+  --ink:#2b2219;
+  --ink-soft:#6b5b47;
+  --line:#d9ccb1;
+  --rust:#9a4a22;
+  --wood:#1d1814;
+  --gold:#c9a24a;
+  --display:"Marcellus SC","Trajan Pro",Georgia,serif;
+  --body:"EB Garamond",Garamond,"Times New Roman",serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font-family:var(--body);font-size:19px;line-height:1.65}
+.band{background:var(--wood);color:#efe6d6;padding-block:calc(28px + env(safe-area-inset-top,0px)) 30px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-family:var(--display);letter-spacing:.18em;color:var(--gold);font-size:.8rem}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(1.6rem,4vw,2.4rem);margin:0;letter-spacing:.04em;text-wrap:balance}
+.band p{margin:0;color:#b3a58f;font-style:italic}
+.band a{color:var(--gold)}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px;font-size:1rem}
+nav.toc a{color:#efe6d6;text-decoration:none;border-bottom:1px solid #4a3d31}
+nav.toc a:hover{color:var(--gold);border-color:var(--gold)}
+main{max-width:1040px;margin:0 auto;padding-block:24px 60px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:28px}
+.note{color:var(--ink-soft);font-size:.95rem;margin:0}
+article{background:var(--paper);border:1px solid var(--line);border-radius:3px;padding:24px;
+  display:grid;grid-template-columns:200px minmax(0,1fr);gap:28px;scroll-margin-top:16px}
+.thumbs{display:flex;flex-direction:column;gap:10px}
+.thumbs img{width:100%;height:auto;border:1px solid var(--line);display:block}
+.thumbs a.back{font-size:.95rem;color:var(--rust)}
+.txt{min-width:0}
+.txt h2{font-family:var(--display);font-weight:400;font-size:1.45rem;margin:0;letter-spacing:.03em;text-wrap:balance}
+.txt .m{color:var(--ink-soft);font-style:italic;margin:2px 0 16px;font-size:.98rem}
+.txt p{margin:0 0 .9em;max-width:64ch}
+.r{display:block;text-align:right;max-width:64ch}
+.q{color:var(--rust);font-size:.85em}
+a:focus-visible{outline:2px solid var(--rust);outline-offset:2px}
+@media (max-width:700px){
+  article{grid-template-columns:1fr;padding:18px}
+  .thumbs{flex-direction:row;flex-wrap:wrap;align-items:flex-start}
+  .thumbs img{width:calc(50% - 5px)}
+  .thumbs a.back{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="band"><div class="band-in">
+  <span class="eyebrow">Je maintiendrai</span>
+  <h1>Teksten uit het album</h1>
+  <p>Mej. A. de Bijll Nachenius, namens de Belgen aangeboden · 25 december 1917 · <a href="index.html">Terug naar het bladerboek</a></p>
+  <nav class="toc" id="toc" aria-label="Inhoud"></nav>
+</div></div>
+<main id="list">
+  <p class="note">Overgeschreven met de oorspronkelijke spelling. <span class="q">[?]</span> = onzeker gelezen.</p>
+</main>
+<script src="texts.js"></script>
+<script>
+const list=document.getElementById("list"),toc=document.getElementById("toc");
+TEXTS.forEach(t=>{
+  const a=document.createElement("a");a.href="#"+t.id;a.textContent=t.title;toc.appendChild(a);
+  const art=document.createElement("article");art.id=t.id;
+  const thumbs=t.pages.map(p=>`<img src="pages/${p}.jpg" alt="Originele pagina: ${t.title}" loading="lazy">`).join("");
+  art.innerHTML=`<div class="thumbs">${thumbs}<a class="back" href="index.html#${t.id}">Bekijk in het boek</a></div>
+    <div class="txt"${t.lang?` lang="${t.lang}"`:""}><h2>${t.title}</h2><p class="m">${t.meta||""}</p>${renderText(t)}</div>`;
+  list.appendChild(art);
+});
+</script>
+</body>
+</html>

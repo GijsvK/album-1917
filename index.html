@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Album De Bijll Nachenius 1917</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap">
+<style>
+/* Layout: het boek ligt centraal op een donkere ondergrond, titel erboven, bediening eronder. Bewust één donkere sfeer. */
+:root{
+  --bg:#1d1814;        /* donker hout */
+  --bg-2:#2a221c;
+  --fg:#efe6d6;        /* papier */
+  --muted:#b3a58f;
+  --gold:#c9a24a;      /* goudopdruk van de band */
+  --line:#4a3d31;
+  --paper:#f3ead8;     /* leesvlak */
+  --paper-line:#d9ccb1;
+  --ink:#2b2219;
+  --ink-soft:#6b5b47;
+  --rust:#9a4a22;
+  --display:"Marcellus SC","Trajan Pro",Georgia,serif;
+  --body:"EB Garamond",Garamond,"Times New Roman",serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:18px;line-height:1.5;
+  background:radial-gradient(ellipse at 50% 40%,var(--bg-2),var(--bg) 70%);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 40px;min-height:100%}
+main{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:22px}
+header{text-align:center;display:flex;flex-direction:column;gap:4px}
+.eyebrow{font-family:var(--display);letter-spacing:.18em;color:var(--gold);font-size:.8rem}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(1.5rem,4vw,2.4rem);margin:0;letter-spacing:.04em;text-wrap:balance}
+.sub{color:var(--muted);font-style:italic;margin:0}
+.stage{width:100%;display:flex;justify-content:center}
+#book{filter:drop-shadow(0 18px 30px rgba(0,0,0,.55))}
+#book img{max-width:none}
+.controls{display:flex;align-items:center;gap:18px;font-family:var(--display);letter-spacing:.08em}
+button{font:inherit;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:999px;padding:8px 18px;cursor:pointer}
+button:hover{border-color:var(--gold);color:var(--gold)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button:disabled{opacity:.35;cursor:default}
+#count{color:var(--muted);min-width:14ch;max-width:46ch;text-align:center;font-variant-numeric:tabular-nums;font-family:var(--body);letter-spacing:0}
+.controls{flex-wrap:wrap;justify-content:center}
+.jumpwrap{color:var(--muted);display:flex;gap:8px;align-items:center}
+select{font:inherit;font-size:.95rem;color:var(--fg);background:var(--bg-2);border:1px solid var(--line);border-radius:6px;padding:4px 8px;max-width:70vw}
+.hint{color:var(--muted);font-size:.9rem;margin:0;text-align:center}
+.box{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:960px;width:100%;margin-top:18px;border-top:1px solid var(--line);padding-top:22px}
+.box figure{margin:0;display:flex;flex-direction:column;gap:6px}
+.box img{width:100%;height:auto;border-radius:2px}
+.box figcaption{color:var(--muted);font-size:.9rem;font-style:italic}
+.box{display:none}
+.actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center;min-height:44px}
+#read{background:var(--gold);color:var(--bg);border-color:var(--gold);font-family:var(--display);letter-spacing:.08em}
+#read:hover{background:transparent;color:var(--gold)}
+.alltexts{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.alltexts:hover{color:var(--gold)}
+dialog{border:none;padding:0;max-width:min(720px,calc(100vw - 32px));width:100%;max-height:calc(100vh - 48px);background:var(--paper);color:var(--ink);border-radius:4px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+dialog::backdrop{background:rgba(10,8,6,.72)}
+.dlg{display:flex;flex-direction:column;max-height:calc(100vh - 48px)}
+.dlg-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:20px 24px 12px;border-bottom:1px solid var(--paper-line)}
+.dlg-head h2{font-family:var(--display);font-weight:400;font-size:1.35rem;margin:0;letter-spacing:.03em;text-wrap:balance}
+.dlg-head .m{color:var(--ink-soft);font-style:italic;font-size:.95rem;margin:2px 0 0}
+#close{color:var(--ink);border-color:var(--paper-line);padding:4px 14px;font-family:var(--body);flex-shrink:0}
+#close:hover{color:var(--ink);border-color:var(--ink)}
+.dlg-body{overflow:auto;padding:16px 24px 24px;font-size:1.12rem;line-height:1.65}
+.dlg-body p{margin:0 0 .9em;max-width:62ch}
+.r{display:block;text-align:right}
+.q{color:var(--rust);font-size:.85em}
+.dlg-foot{padding:10px 24px 16px;border-top:1px solid var(--paper-line);font-size:.92rem;color:var(--ink-soft)}
+.dlg-foot a{color:var(--rust)}
+</style>
+</head>
+<body>
+
+
+<main>
+  <header>
+    <span class="eyebrow">Je maintiendrai</span>
+    <h1>Als blijvend aandenken</h1>
+    <p class="sub">Mej. A. de Bijll Nachenius, namens de Belgen aangeboden · 25 december 1917</p>
+  </header>
+
+  <div class="stage"><div id="book"></div></div>
+
+  <div class="controls">
+    <button id="prev" type="button" aria-label="Vorige pagina">‹ Vorige</button>
+    <span id="count" aria-live="polite">De doos</span>
+    <button id="next" type="button" aria-label="Volgende pagina">Volgende ›</button>
+  </div>
+  <div class="actions">
+    <button id="read" type="button" hidden>Lees de tekst</button>
+    <a class="alltexts" href="teksten.html">Alle teksten op één pagina</a>
+  </div>
+  <label class="jumpwrap" for="jump">Ga naar <select id="jump"></select></label>
+  <p class="hint">Sleep een paginahoek of klik op de rand van het boek om te bladeren. Pijltjestoetsen werken ook.</p>
+
+</main>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div class="dlg">
+    <div class="dlg-head">
+      <div><h2 id="dlg-title"></h2><p class="m" id="dlg-meta"></p></div>
+      <button id="close" type="button" aria-label="Sluiten">Sluiten ✕</button>
+    </div>
+    <div class="dlg-body" id="dlg-body"></div>
+    <div class="dlg-foot">Overgeschreven met de oorspronkelijke spelling. <span class="q">[?]</span> = onzeker gelezen. <a href="teksten.html">Alle teksten op één pagina</a></div>
+  </div>
+</dialog>
+
+<script src="js/page-flip.browser.js"></script>
+<script src="texts.js"></script>
+<script>
+const book=[
+ ["box_closed","De doos"],["box_open_L",""],["box_open_R","De doos geopend"],["dark",""],
+ ["p00_cover","Omslag van het album"],["p01",""],["p02","Ondertekeningen"],["p03",""],["p04","Oorlog 1914"],["p05",""],["p06","Wapens van Nederland en België"],
+ ["blank",""],["blar1","Brief uit Blaricum"],["blank",""],["blar2","Brief uit Blaricum, vervolg"],
+ ["fr_L",""],["fr_R","Lettre de Laren, 1 février 1918"],["blank",""],["glorie","Lettre, suite (M. Glorie)"],
+ ["sch_L",""],["sch_R","Brief van W. Schepmans"],
+ ["heart_L",""],["heart_R","Brandend hart"],["reaper_L",""],["reaper_R","De maaier (Jul. Verwest)"],
+ ["orch_L",""],["orch_R","Orchideeën (Gustave De Smet)"],["port_L",""],["port_R","Portret (Gustave De Smet)"],
+ ["land_L",""],["land_R","Landschap (Julius Desmet)"],["eleph_L",""],["eleph_R","Stilleven met olifant (Firmin De Smet)"],
+ ["moth_L",""],["moth_R","Moeder en kind (Jul. Verwest)"],["yell_L",""],["yell_R","Vluchtelingen"],
+ ["globe_L",""],["globe_R","Bloedende wereld"],["etch_L",""],["etch_R","Aan den Yzer, 1914–1919"],
+ ["blank",""],["intro","Als in 1914 den grooten oorlog uitbrak"],
+ ["p07",""],["p08","Kroniek 1914–1915"],["p09",""],["p10","Kroniek 1916–1919"],
+ ["p11",""],["p12",""],["p13",""],["p14","Binnenkant achterplat"],["p15_back","Achterplat"],
+ ["dark",""],["box_empty_L",""],["box_empty_R","De lege doos, met penning"]
+];
+const pages=book.map(b=>"pages/"+b[0]+".jpg");
+const labels=book.map(b=>b[1]);
+const flip=new St.PageFlip(document.getElementById("book"),{
+  width:550,height:730,size:"stretch",
+  minWidth:200,maxWidth:560,minHeight:265,maxHeight:744,
+  showCover:true,maxShadowOpacity:.5,drawShadow:true,flippingTime:900,
+  mobileScrollSupport:true,usePortrait:true
+});
+flip.loadFromImages(pages);
+const jump=document.getElementById("jump");
+book.forEach((b,i)=>{if(b[1]){const op=document.createElement("option");op.value=i;op.textContent=b[1];jump.appendChild(op)}});
+jump.onchange=()=>flip.flip(+jump.value);
+const read=document.getElementById("read"),dlg=document.getElementById("dlg");
+let current=null;
+read.onclick=()=>{if(!current)return;
+  document.getElementById("dlg-title").textContent=current.title;
+  document.getElementById("dlg-meta").textContent=current.meta||"";
+  const body=document.getElementById("dlg-body");body.innerHTML=renderText(current);body.lang=current.lang||"nl";body.scrollTop=0;
+  dlg.showModal();};
+document.getElementById("close").onclick=()=>dlg.close();
+dlg.addEventListener("click",e=>{if(e.target===dlg)dlg.close()});
+const prev=document.getElementById("prev"),next=document.getElementById("next"),count=document.getElementById("count");
+function update(i){
+  const o=flip.getOrientation&&flip.getOrientation()==="landscape";
+  let a=i,b=i;
+  if(o&&i>0&&i<pages.length-1){a=i%2?i:i-1;b=a+1}
+  const t=labels[b]||labels[a]||"";
+  count.textContent=(o&&a!==b?"p. "+a+"–"+b:"p. "+a)+(t?" · "+t:"");
+  jump.value=String([...jump.options].map(x=>+x.value).filter(v=>v<=b).pop()??0);
+  const keys=[book[a][0],book[b][0]];
+  current=TEXTS.find(t=>t.pages.some(p=>keys.includes(p)))||null;
+  read.hidden=!current;
+  if(current) read.textContent="Lees de tekst: "+current.title;
+  prev.disabled=i===0; next.disabled=i>=pages.length-1;
+}
+flip.on("flip",e=>update(e.data));
+flip.on("changeOrientation",()=>update(flip.getCurrentPageIndex()));
+prev.onclick=()=>flip.flipPrev();
+next.onclick=()=>flip.flipNext();
+document.addEventListener("keydown",e=>{if(dlg.open)return;if(e.key==="ArrowLeft")flip.flipPrev();if(e.key==="ArrowRight")flip.flipNext();});
+update(0);
+(function(){const h=decodeURIComponent(location.hash.slice(1));if(!h)return;
+  const t=TEXTS.find(x=>x.id===h);const idx=t?book.findIndex(b=>b[0]===t.pages[0]):-1;
+  if(idx>0){flip.turnToPage(idx);update(idx);}})();
+</script>
+
+</body>
+</html>
