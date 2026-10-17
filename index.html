@@ -36,6 +36,9 @@ h1{font-family:var(--display);font-weight:400;font-size:clamp(1.5rem,4vw,2.4rem)
 .stage{width:100%;display:flex;justify-content:center}
 #book{filter:drop-shadow(0 18px 30px rgba(0,0,0,.55))}
 #book img{max-width:none}
+#book{transition:transform .7s ease}
+.stage.cover-front #book{transform:translateX(-25%)}
+@media (prefers-reduced-motion:reduce){#book{transition:none}}
 .controls{display:flex;align-items:center;gap:18px;font-family:var(--display);letter-spacing:.08em}
 button{font:inherit;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:999px;padding:8px 18px;cursor:pointer}
 button:hover{border-color:var(--gold);color:var(--gold)}
@@ -137,6 +140,8 @@ const flip=new St.PageFlip(document.getElementById("book"),{
   mobileScrollSupport:true,usePortrait:true
 });
 flip.loadFromImages(pages);
+/* tekenvlak doorzichtig i.p.v. wit, zodat er naast de doos geen lege pagina staat */
+{const r=flip.getRender();r.clear=function(){this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height)};}
 const jump=document.getElementById("jump");
 book.forEach((b,i)=>{if(b[1]){const op=document.createElement("option");op.value=i;op.textContent=b[1];jump.appendChild(op)}});
 jump.onchange=()=>flip.flip(+jump.value);
@@ -149,6 +154,9 @@ read.onclick=()=>{if(!current)return;
   dlg.showModal();};
 document.getElementById("close").onclick=()=>dlg.close();
 dlg.addEventListener("click",e=>{if(e.target===dlg)dlg.close()});
+const stage=document.querySelector(".stage");
+flip.on("changeState",e=>{if(e.data==="flipping")stage.classList.remove("cover-front")});
+flip.on("changeState",e=>{if(e.data==="read")update(flip.getCurrentPageIndex())});
 const prev=document.getElementById("prev"),next=document.getElementById("next"),count=document.getElementById("count");
 function update(i){
   const o=flip.getOrientation&&flip.getOrientation()==="landscape";
@@ -161,6 +169,7 @@ function update(i){
   current=TEXTS.find(t=>t.pages.some(p=>keys.includes(p)))||null;
   read.hidden=!current;
   if(current) read.textContent="Lees de tekst: "+current.title;
+  stage.classList.toggle("cover-front",o&&i===0);
   prev.disabled=i===0; next.disabled=i>=pages.length-1;
 }
 flip.on("flip",e=>update(e.data));
