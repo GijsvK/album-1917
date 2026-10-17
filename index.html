@@ -131,20 +131,46 @@ const book=[
  ["p11",""],["p12",""],["p13",""],["p14","Binnenkant achterplat"],["p15_back","Achterplat"],
  ["dark",""],["box_empty_L",""],["box_empty_R","De lege doos, met penning"]
 ];
-const pages=book.map(b=>"pages/"+b[0]+".jpg");
-const labels=book.map(b=>b[1]);
+const full=book.map((b,i)=>i);
+/* telefoon: alleen pagina's met tekening, tekst of foto */
+const mob=full.filter(i=>book[i][1]);
+/* achterkant van een omgeslagen blad op de telefoon = de overgeslagen pagina die er in het echte boek achter zit */
+const backImg={};
+mob.forEach(i=>{const n=book[i+1];if(n&&!n[1]&&n[0]!=="dark"){const im=new Image();im.src="pages/"+n[0]+".jpg";backImg[i]=im}});
+let view=full;
+const src=v=>v.map(i=>"pages/"+book[i][0]+".jpg");
 const flip=new St.PageFlip(document.getElementById("book"),{
   width:550,height:730,size:"stretch",
   minWidth:200,maxWidth:560,minHeight:265,maxHeight:744,
   showCover:true,maxShadowOpacity:.5,drawShadow:true,flippingTime:900,
   mobileScrollSupport:true,usePortrait:true
 });
-flip.loadFromImages(pages);
+flip.loadFromImages(src(view));
 /* tekenvlak doorzichtig i.p.v. wit, zodat er naast de doos geen lege pagina staat */
 {const r=flip.getRender();r.clear=function(){this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height)};}
+function patchBacks(){
+  const col=flip.getPageCollection(),orig=col.getFlippingPage.bind(col);
+  col.getFlippingPage=function(d){
+    const p=orig(d);
+    if(view===mob&&d===0&&flip.getOrientation()==="portrait"){
+      const im=backImg[view[this.currentSpreadIndex]];
+      if(im&&im.complete&&im.naturalWidth){const q=Object.create(p);q.image=im;q.isLoad=true;return q}
+    }
+    return p;
+  };
+}
+patchBacks();
+const posOf=bi=>{let k=0;view.forEach((v,j)=>{if(v<=bi)k=j});return k};
+function setView(v){
+  if(v===view)return;
+  const bi=view[flip.getCurrentPageIndex()]||0;
+  view=v;flip.updateFromImages(src(view));patchBacks();
+  const k=posOf(bi);if(k)flip.turnToPage(k);update(k);
+}
+const wantView=()=>flip.getOrientation()==="portrait"?mob:full;
 const jump=document.getElementById("jump");
 book.forEach((b,i)=>{if(b[1]){const op=document.createElement("option");op.value=i;op.textContent=b[1];jump.appendChild(op)}});
-jump.onchange=()=>flip.flip(+jump.value);
+jump.onchange=()=>flip.flip(posOf(+jump.value));
 const read=document.getElementById("read"),dlg=document.getElementById("dlg");
 let current=null;
 read.onclick=()=>{if(!current)return;
@@ -161,26 +187,28 @@ const prev=document.getElementById("prev"),next=document.getElementById("next"),
 function update(i){
   const o=flip.getOrientation&&flip.getOrientation()==="landscape";
   let a=i,b=i;
-  if(o&&i>0&&i<pages.length-1){a=i%2?i:i-1;b=a+1}
-  const t=labels[b]||labels[a]||"";
-  count.textContent=(o&&a!==b?"p. "+a+"–"+b:"p. "+a)+(t?" · "+t:"");
-  jump.value=String([...jump.options].map(x=>+x.value).filter(v=>v<=b).pop()??0);
-  const keys=[book[a][0],book[b][0]];
+  if(o&&i>0&&i<view.length-1){a=i%2?i:i-1;b=a+1}
+  const A=view[a],B=view[b];
+  const t=book[B][1]||book[A][1]||"";
+  count.textContent=(A!==B?"p. "+A+"–"+B:"p. "+A)+(t?" · "+t:"");
+  jump.value=String([...jump.options].map(x=>+x.value).filter(v=>v<=B).pop()??0);
+  const keys=[book[A][0],book[B][0]];
   current=TEXTS.find(t=>t.pages.some(p=>keys.includes(p)))||null;
   read.hidden=!current;
   if(current) read.textContent="Lees de tekst: "+current.title;
   stage.classList.toggle("cover-front",o&&i===0);
-  prev.disabled=i===0; next.disabled=i>=pages.length-1;
+  prev.disabled=i===0; next.disabled=i>=view.length-1;
 }
 flip.on("flip",e=>update(e.data));
-flip.on("changeOrientation",()=>update(flip.getCurrentPageIndex()));
+flip.on("changeOrientation",()=>{setView(wantView());update(flip.getCurrentPageIndex())});
 prev.onclick=()=>flip.flipPrev();
 next.onclick=()=>flip.flipNext();
 document.addEventListener("keydown",e=>{if(dlg.open)return;if(e.key==="ArrowLeft")flip.flipPrev();if(e.key==="ArrowRight")flip.flipNext();});
-update(0);
+setView(wantView());
+update(flip.getCurrentPageIndex());
 (function(){const h=decodeURIComponent(location.hash.slice(1));if(!h)return;
-  const t=TEXTS.find(x=>x.id===h);const idx=t?book.findIndex(b=>b[0]===t.pages[0]):-1;
-  if(idx>0){flip.turnToPage(idx);update(idx);}})();
+  const t=TEXTS.find(x=>x.id===h);const bi=t?book.findIndex(b=>b[0]===t.pages[0]):-1;
+  if(bi>0){const k=posOf(bi);flip.turnToPage(k);update(k);}})();
 </script>
 
 </body>
