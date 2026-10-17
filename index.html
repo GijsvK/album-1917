@@ -185,6 +185,10 @@ const stage=document.querySelector(".stage");
 flip.on("changeState",e=>{if(e.data==="flipping")stage.classList.remove("cover-front")});
 flip.on("changeState",e=>{if(e.data==="read")update(flip.getCurrentPageIndex())});
 const prev=document.getElementById("prev"),next=document.getElementById("next"),count=document.getElementById("count");
+/* paginanummer: de ondertekeningen zijn pagina 1 (rechts), even = links, oneven = rechts.
+   Doos, omslag, binnenkant achterplat en achterplat krijgen geen nummer. */
+const FIRST_NR=book.findIndex(b=>b[0]==="p02"), LAST_NR=book.findIndex(b=>b[0]==="p14")-1;
+const pageNr=i=>i>=FIRST_NR&&i<=LAST_NR?i-FIRST_NR+1:0;
 function update(i){
   const o=flip.getOrientation&&flip.getOrientation()==="landscape";
   let a=i,b=i;
@@ -192,7 +196,8 @@ function update(i){
   const A=view[a],B=view[b];
   if(view===wantView()) curBook=book[B][1]?B:A; /* alleen als lijst en stand bij elkaar passen */
   const t=book[B][1]||book[A][1]||"";
-  count.textContent=(A!==B?"p. "+A+"–"+B:"p. "+A)+(t?" · "+t:"");
+  const nrs=[...new Set([A,B])].map(pageNr).filter(n=>n);
+  count.textContent=(nrs.length?"p. "+nrs.join("–"):"")+(nrs.length&&t?" · ":"")+t;
   jump.value=String([...jump.options].map(x=>+x.value).filter(v=>v<=B).pop()??0);
   const keys=[book[A][0],book[B][0]];
   current=TEXTS.find(t=>t.pages.some(p=>keys.includes(p)))||null;
