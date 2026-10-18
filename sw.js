@@ -1,6 +1,6 @@
 /* Service worker: maakt de app installeerbaar en houdt bekeken pagina's offline beschikbaar.
    Verhoog VERSION na grote wijzigingen om oude bestanden op te ruimen. */
-const VERSION = "album-1917-v1";
+const VERSION = "album-1917-v2";
 const CORE = ["./", "index.html", "teksten.html", "texts.js", "js/page-flip.browser.js",
   "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 self.addEventListener("install", e => {
