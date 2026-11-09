@@ -61,7 +61,8 @@ button:disabled{opacity:.35;cursor:default}
 .controls{flex-wrap:wrap;justify-content:center}
 .jumpwrap{color:var(--muted);display:flex;gap:8px;align-items:center}
 select{font:inherit;font-size:.95rem;color:var(--fg);background:var(--bg-2);border:1px solid var(--line);border-radius:6px;padding:4px 8px;max-width:70vw}
-#book{touch-action:none;cursor:zoom-in;position:relative}
+#book{touch-action:pan-y;position:relative}
+#book.zoomable{cursor:zoom-in}
 #book.corner{cursor:pointer}
 .lens{position:fixed;z-index:50;width:var(--lens);height:var(--lens);border-radius:50%;pointer-events:none;
   border:3px solid var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.6),inset 0 0 0 1px rgba(0,0,0,.4);
@@ -123,7 +124,7 @@ dialog::backdrop{background:rgba(10,8,6,.72)}
     <a class="alltexts" href="teksten.html">Alle teksten op één pagina</a>
   </div>
   <label class="jumpwrap" for="jump">Ga naar <select id="jump"></select></label>
-  <p class="hint">Beweeg over een pagina (of raak ze aan) om te vergroten (scroll om in of uit te zoomen, 2× tot 8×). Klik op de hoek rechtsonder om om te slaan, linksonder om terug te gaan. Pijltjestoetsen werken ook.</p>
+  <p class="hint">Beweeg over een tekst of tekening (of raak ze aan) om te vergroten (scroll om in of uit te zoomen, 2× tot 8×). Klik op de hoek rechtsonder om om te slaan, linksonder om terug te gaan. Pijltjestoetsen werken ook.</p>
 
 </main>
 
@@ -247,6 +248,9 @@ setView(wantView());
 update(flip.getCurrentPageIndex());
 
 /* ---------- vergrootglas (4×) en omslaan via de hoeken ---------- */
+/* alleen pagina's met tekst of tekening kunnen vergroot worden; scherpe versies staan in zoom/ */
+const ZOOMABLE=new Set(["p02","p04","p06","blar1","blar2","fr_R","glorie","sch_R","heart_R","reaper_R","orch_R","port_R","land_R","eleph_R","moth_R","yell_R","globe_R","etch_R","intro","p08","p10"]);
+const canZoom=p=>p&&ZOOMABLE.has(book[p.bi][0]);
 let ZOOM=2; const ZMIN=2,ZMAX=8, bookEl=document.getElementById("book");
 const lens=document.createElement("div");lens.className="lens";lens.hidden=true;document.body.appendChild(lens);
 const foldNext=document.createElement("div");foldNext.className="fold next";
@@ -292,9 +296,11 @@ function showLens(cx,cy,p,lx,ly){
   if(flip.getState&&flip.getState()!=="read"){lens.hidden=true;return}
   const L=lens.offsetWidth||parseFloat(getComputedStyle(lens).getPropertyValue("--lens"))||280;
   const rx=cx-p.x, ry=cy-p.y;
-  lens.style.backgroundImage='url("pages/'+book[p.bi][0]+'.jpg")';
-  lens.style.backgroundSize=(p.w*ZOOM)+"px "+(p.h*ZOOM)+"px";
-  lens.style.backgroundPosition=(L/2-rx*ZOOM)+"px "+(L/2-ry*ZOOM)+"px";
+  const n=book[p.bi][0], sz=(p.w*ZOOM)+"px "+(p.h*ZOOM)+"px", pos=(L/2-rx*ZOOM)+"px "+(L/2-ry*ZOOM)+"px";
+  /* scherpe versie bovenop, gewone versie eronder zolang de scherpe nog laadt */
+  lens.style.backgroundImage='url("zoom/'+n+'.jpg"),url("pages/'+n+'.jpg")';
+  lens.style.backgroundSize=sz+","+sz;
+  lens.style.backgroundPosition=pos+","+pos;
   let left=lx-L/2, top=ly-L/2;
   left=Math.max(4,Math.min(innerWidth-L-4,left)); top=Math.max(4,Math.min(innerHeight-L-4,top));
   lens.style.left=left+"px"; lens.style.top=top+"px"; lens.hidden=false;
@@ -313,7 +319,8 @@ bookEl.addEventListener("mousemove",e=>{
   const h=hit(e.clientX,e.clientY);
   bookEl.classList.toggle("corner",!!(h&&h.corner));
   foldNext.classList.toggle("on",h&&h.corner==="next"); foldPrev.classList.toggle("on",h&&h.corner==="prev");
-  if(!h||!h.p||h.corner){hideLens();return}
+  bookEl.classList.toggle("zoomable",!!(h&&canZoom(h.p)&&!h.corner));
+  if(!h||!h.p||h.corner||!canZoom(h.p)){hideLens();return}
   showLens(e.clientX,e.clientY,h.p,e.clientX,e.clientY);
 });
 bookEl.addEventListener("mouseleave",()=>{hideLens();bookEl.classList.remove("corner")});
@@ -322,12 +329,12 @@ bookEl.addEventListener("click",e=>{const h=hit(e.clientX,e.clientY);if(h&&h.cor
 let tStart=null;
 bookEl.addEventListener("touchstart",e=>{
   const t=e.touches[0], h=hit(t.clientX,t.clientY); tStart={x:t.clientX,y:t.clientY,corner:h&&h.corner,moved:false};
-  if(h&&h.p&&!h.corner){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||300)*0.75)}
+  if(h&&h.p&&!h.corner&&canZoom(h.p)){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||300)*0.75)}
 },{passive:false});
 bookEl.addEventListener("touchmove",e=>{
   const t=e.touches[0]; if(tStart&&Math.hypot(t.clientX-tStart.x,t.clientY-tStart.y)>10)tStart.moved=true;
   const h=hit(t.clientX,t.clientY);
-  if(h&&h.p){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||300)*0.75)} else hideLens();
+  if(h&&h.p&&canZoom(h.p)){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||300)*0.75)} else hideLens();
 },{passive:false});
 bookEl.addEventListener("touchend",e=>{
   hideLens();

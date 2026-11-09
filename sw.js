@@ -1,6 +1,6 @@
 /* Service worker: maakt de app installeerbaar en houdt bekeken pagina's offline beschikbaar.
    Verhoog VERSION na grote wijzigingen om oude bestanden op te ruimen. */
-const VERSION = "album-1917-v3";
+const VERSION = "album-1917-v4";
 const CORE = ["./", "index.html", "teksten.html", "texts.js", "js/page-flip.browser.js",
   "manifest.webmanifest"];
 self.addEventListener("install", e => {
@@ -16,7 +16,7 @@ self.addEventListener("fetch", e => {
   const url = new URL(req.url);
   /* iconen en manifest nooit via de service worker: iOS haalt het app-icoon anders niet op */
   if (/\/icons\/|apple-touch-icon|favicon|manifest\.webmanifest/.test(url.pathname)) return;
-  const isImage = url.origin === location.origin && /\/pages\//.test(url.pathname);
+  const isImage = url.origin === location.origin && /\/(pages|zoom)\//.test(url.pathname);
   if (isImage) {
     // afbeeldingen veranderen zelden: eerst uit de cache
     e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
