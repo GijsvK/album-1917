@@ -305,7 +305,7 @@ function showLens(cx,cy,p,lx,ly){
   left=Math.max(4,Math.min(innerWidth-L-4,left)); top=Math.max(4,Math.min(innerHeight-L-4,top));
   lens.style.left=left+"px"; lens.style.top=top+"px"; lens.hidden=false;
 }
-function hideLens(){lens.hidden=true}
+function hideLens(){lens.hidden=true;if(typeof touchLens!=="undefined")touchLens=false}
 function doCorner(c){hideLens(); if(c==="next")flip.flipNext(); else flip.flipPrev();}
 /* scrollen boven het vergrootglas = zoomfactor 2× t/m 8× */
 bookEl.addEventListener("wheel",e=>{
@@ -325,23 +325,33 @@ bookEl.addEventListener("mousemove",e=>{
 });
 bookEl.addEventListener("mouseleave",()=>{hideLens();bookEl.classList.remove("corner")});
 bookEl.addEventListener("click",e=>{const h=hit(e.clientX,e.clientY);if(h&&h.corner)doCorner(h.corner)});
-/* aanraken: vergrootglas boven de vinger, tik in de hoek = omslaan */
-let tStart=null;
+/* aanraken: vergrootglas boven de vinger; blijft open na loslaten en sluit bij een volgende tik.
+   Slepen met het vergrootglas open verplaatst het. Tik in de hoek (vergrootglas dicht) = omslaan. */
+let tStart=null, touchLens=false;
+const above=y=>y-(lens.offsetWidth||300)*0.75;
 bookEl.addEventListener("touchstart",e=>{
-  const t=e.touches[0], h=hit(t.clientX,t.clientY); tStart={x:t.clientX,y:t.clientY,corner:h&&h.corner,moved:false};
-  if(h&&h.p&&!h.corner&&canZoom(h.p)){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||300)*0.75)}
+  const t=e.touches[0], h=hit(t.clientX,t.clientY);
+  tStart={x:t.clientX,y:t.clientY,corner:!touchLens&&h&&h.corner,moved:false,wasOpen:touchLens};
+  if(touchLens){e.preventDefault();return}
+  if(h&&h.p&&!h.corner&&canZoom(h.p)){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,above(t.clientY));touchLens=true}
 },{passive:false});
 bookEl.addEventListener("touchmove",e=>{
-  const t=e.touches[0]; if(tStart&&Math.hypot(t.clientX-tStart.x,t.clientY-tStart.y)>10)tStart.moved=true;
+  if(!touchLens)return;
+  const t=e.touches[0]; e.preventDefault();
+  if(tStart&&Math.hypot(t.clientX-tStart.x,t.clientY-tStart.y)>10)tStart.moved=true;
+  if(tStart&&tStart.wasOpen&&!tStart.moved)return;
   const h=hit(t.clientX,t.clientY);
-  if(h&&h.p&&canZoom(h.p)){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||300)*0.75)} else hideLens();
+  if(h&&h.p&&canZoom(h.p))showLens(t.clientX,t.clientY,h.p,t.clientX,above(t.clientY));
 },{passive:false});
 bookEl.addEventListener("touchend",e=>{
-  hideLens();
-  if(tStart&&tStart.corner&&!tStart.moved){e.preventDefault();doCorner(tStart.corner)}
+  if(!tStart)return;
+  if(tStart.wasOpen&&!tStart.moved){e.preventDefault();hideLens();touchLens=false}
+  else if(tStart.corner&&!tStart.moved){e.preventDefault();doCorner(tStart.corner)}
   tStart=null;
 });
-bookEl.addEventListener("touchcancel",()=>{hideLens();tStart=null});
+bookEl.addEventListener("touchcancel",()=>{tStart=null});
+/* tik buiten het boek sluit het vergrootglas ook */
+document.addEventListener("touchstart",e=>{if(touchLens&&!bookEl.contains(e.target)){hideLens();touchLens=false}},{passive:true});
 flip.on("changeState",e=>{if(e.data!=="read")hideLens(); else setTimeout(placeFolds,30)});
 flip.on("flip",()=>setTimeout(placeFolds,30));
 flip.on("changeOrientation",()=>setTimeout(placeFolds,60));
