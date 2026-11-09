@@ -65,8 +65,8 @@ select{font:inherit;font-size:.95rem;color:var(--fg);background:var(--bg-2);bord
 #book.corner{cursor:pointer}
 .lens{position:fixed;z-index:50;width:var(--lens);height:var(--lens);border-radius:50%;pointer-events:none;
   border:3px solid var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.6),inset 0 0 0 1px rgba(0,0,0,.4);
-  background-color:var(--bg-2);background-repeat:no-repeat;--lens:280px}
-@media (max-width:600px){.lens{--lens:200px}}
+  background-color:var(--bg-2);background-repeat:no-repeat;--lens:420px}
+@media (max-width:600px){.lens{--lens:300px}}
 .lens::after{content:attr(data-z);position:absolute;left:50%;bottom:10px;transform:translateX(-50%);
   font:600 13px/1 var(--body);color:var(--bg);background:var(--gold);border-radius:999px;padding:3px 8px}
 .fold{position:absolute;pointer-events:none;width:var(--f);height:var(--f);opacity:.55;transition:opacity .2s;
@@ -322,12 +322,12 @@ bookEl.addEventListener("click",e=>{const h=hit(e.clientX,e.clientY);if(h&&h.cor
 let tStart=null;
 bookEl.addEventListener("touchstart",e=>{
   const t=e.touches[0], h=hit(t.clientX,t.clientY); tStart={x:t.clientX,y:t.clientY,corner:h&&h.corner,moved:false};
-  if(h&&h.p&&!h.corner){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||200)*0.75)}
+  if(h&&h.p&&!h.corner){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||300)*0.75)}
 },{passive:false});
 bookEl.addEventListener("touchmove",e=>{
   const t=e.touches[0]; if(tStart&&Math.hypot(t.clientX-tStart.x,t.clientY-tStart.y)>10)tStart.moved=true;
   const h=hit(t.clientX,t.clientY);
-  if(h&&h.p){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||200)*0.75)} else hideLens();
+  if(h&&h.p){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||300)*0.75)} else hideLens();
 },{passive:false});
 bookEl.addEventListener("touchend",e=>{
   hideLens();
