@@ -67,6 +67,8 @@ select{font:inherit;font-size:.95rem;color:var(--fg);background:var(--bg-2);bord
   border:3px solid var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.6),inset 0 0 0 1px rgba(0,0,0,.4);
   background-color:var(--bg-2);background-repeat:no-repeat;--lens:280px}
 @media (max-width:600px){.lens{--lens:200px}}
+.lens::after{content:attr(data-z);position:absolute;left:50%;bottom:10px;transform:translateX(-50%);
+  font:600 13px/1 var(--body);color:var(--bg);background:var(--gold);border-radius:999px;padding:3px 8px}
 .fold{position:absolute;pointer-events:none;width:var(--f);height:var(--f);opacity:.55;transition:opacity .2s;
   background:linear-gradient(135deg,transparent 50%,rgba(255,250,235,.95) 50%,rgba(205,190,160,.95) 70%,rgba(120,100,70,.9) 100%);
   border-top-left-radius:4px;box-shadow:-3px -3px 6px rgba(0,0,0,.25)}
@@ -121,7 +123,7 @@ dialog::backdrop{background:rgba(10,8,6,.72)}
     <a class="alltexts" href="teksten.html">Alle teksten op één pagina</a>
   </div>
   <label class="jumpwrap" for="jump">Ga naar <select id="jump"></select></label>
-  <p class="hint">Beweeg over een pagina (of raak ze aan) om 4× te vergroten. Klik op de hoek rechtsonder om om te slaan, linksonder om terug te gaan. Pijltjestoetsen werken ook.</p>
+  <p class="hint">Beweeg over een pagina (of raak ze aan) om te vergroten (scroll om in of uit te zoomen, 2× tot 8×). Klik op de hoek rechtsonder om om te slaan, linksonder om terug te gaan. Pijltjestoetsen werken ook.</p>
 
 </main>
 
@@ -245,7 +247,7 @@ setView(wantView());
 update(flip.getCurrentPageIndex());
 
 /* ---------- vergrootglas (4×) en omslaan via de hoeken ---------- */
-const ZOOM=4, bookEl=document.getElementById("book");
+let ZOOM=2; const ZMIN=2,ZMAX=8, bookEl=document.getElementById("book");
 const lens=document.createElement("div");lens.className="lens";lens.hidden=true;document.body.appendChild(lens);
 const foldNext=document.createElement("div");foldNext.className="fold next";
 const foldPrev=document.createElement("div");foldPrev.className="fold prev";
@@ -284,7 +286,9 @@ function placeFolds(){
     el.style.top=(p.y+p.h-cs-bb.top)+"px";
   }
 }
+let lastLens=null;
 function showLens(cx,cy,p,lx,ly){
+  lastLens=[cx,cy,p,lx,ly]; lens.dataset.z=(Math.round(ZOOM*10)/10).toString().replace(".",",")+"×";
   if(flip.getState&&flip.getState()!=="read"){lens.hidden=true;return}
   const L=lens.offsetWidth||parseFloat(getComputedStyle(lens).getPropertyValue("--lens"))||280;
   const rx=cx-p.x, ry=cy-p.y;
@@ -297,6 +301,13 @@ function showLens(cx,cy,p,lx,ly){
 }
 function hideLens(){lens.hidden=true}
 function doCorner(c){hideLens(); if(c==="next")flip.flipNext(); else flip.flipPrev();}
+/* scrollen boven het vergrootglas = zoomfactor 2× t/m 8× */
+bookEl.addEventListener("wheel",e=>{
+  if(lens.hidden||!lastLens)return;
+  e.preventDefault();
+  ZOOM=Math.min(ZMAX,Math.max(ZMIN,ZOOM+(e.deltaY<0?0.5:-0.5)));
+  showLens(...lastLens);
+},{passive:false});
 /* muis */
 bookEl.addEventListener("mousemove",e=>{
   const h=hit(e.clientX,e.clientY);
