@@ -61,6 +61,17 @@ button:disabled{opacity:.35;cursor:default}
 .controls{flex-wrap:wrap;justify-content:center}
 .jumpwrap{color:var(--muted);display:flex;gap:8px;align-items:center}
 select{font:inherit;font-size:.95rem;color:var(--fg);background:var(--bg-2);border:1px solid var(--line);border-radius:6px;padding:4px 8px;max-width:70vw}
+#book{touch-action:none;cursor:zoom-in;position:relative}
+#book.corner{cursor:pointer}
+.lens{position:fixed;z-index:50;width:var(--lens);height:var(--lens);border-radius:50%;pointer-events:none;
+  border:3px solid var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.6),inset 0 0 0 1px rgba(0,0,0,.4);
+  background-color:var(--bg-2);background-repeat:no-repeat;--lens:280px}
+@media (max-width:600px){.lens{--lens:200px}}
+.fold{position:absolute;pointer-events:none;width:var(--f);height:var(--f);opacity:.55;transition:opacity .2s;
+  background:linear-gradient(135deg,transparent 50%,rgba(255,250,235,.95) 50%,rgba(205,190,160,.95) 70%,rgba(120,100,70,.9) 100%);
+  border-top-left-radius:4px;box-shadow:-3px -3px 6px rgba(0,0,0,.25)}
+.fold.prev{background:linear-gradient(225deg,transparent 50%,rgba(255,250,235,.95) 50%,rgba(205,190,160,.95) 70%,rgba(120,100,70,.9) 100%);border-top-left-radius:0;border-top-right-radius:4px;box-shadow:3px -3px 6px rgba(0,0,0,.25)}
+#book.corner .fold.on{opacity:1}
 .hint{color:var(--muted);font-size:.9rem;margin:0;text-align:center}
 .box{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:960px;width:100%;margin-top:18px;border-top:1px solid var(--line);padding-top:22px}
 .box figure{margin:0;display:flex;flex-direction:column;gap:6px}
@@ -110,7 +121,7 @@ dialog::backdrop{background:rgba(10,8,6,.72)}
     <a class="alltexts" href="teksten.html">Alle teksten op één pagina</a>
   </div>
   <label class="jumpwrap" for="jump">Ga naar <select id="jump"></select></label>
-  <p class="hint">Sleep een paginahoek of klik op de rand van het boek om te bladeren. Pijltjestoetsen werken ook.</p>
+  <p class="hint">Beweeg over een pagina (of raak ze aan) om 4× te vergroten. Klik op de hoek rechtsonder om om te slaan, linksonder om terug te gaan. Pijltjestoetsen werken ook.</p>
 
 </main>
 
@@ -157,7 +168,7 @@ const flip=new St.PageFlip(document.getElementById("book"),{
   width:550,height:730,size:"stretch",
   minWidth:200,maxWidth:560,minHeight:265,maxHeight:744,
   showCover:true,maxShadowOpacity:.5,drawShadow:true,flippingTime:900,
-  mobileScrollSupport:true,usePortrait:true
+  mobileScrollSupport:false,usePortrait:true,useMouseEvents:false
 });
 flip.loadFromImages(src(view));
 /* tekenvlak doorzichtig i.p.v. wit, zodat er naast de doos geen lege pagina staat */
@@ -232,6 +243,93 @@ next.onclick=()=>flip.flipNext();
 document.addEventListener("keydown",e=>{if(dlg.open)return;if(e.key==="ArrowLeft")flip.flipPrev();if(e.key==="ArrowRight")flip.flipNext();});
 setView(wantView());
 update(flip.getCurrentPageIndex());
+
+/* ---------- vergrootglas (4×) en omslaan via de hoeken ---------- */
+const ZOOM=4, bookEl=document.getElementById("book");
+const lens=document.createElement("div");lens.className="lens";lens.hidden=true;document.body.appendChild(lens);
+const foldNext=document.createElement("div");foldNext.className="fold next";
+const foldPrev=document.createElement("div");foldPrev.className="fold prev";
+bookEl.append(foldNext,foldPrev);
+function geom(){
+  const r=flip.getRender(), c=r.canvas||bookEl.querySelector("canvas"); if(!c)return null;
+  const R=r.getRect(), cb=c.getBoundingClientRect(), k=cb.width/c.width;
+  const i=flip.getCurrentPageIndex(), land=flip.getOrientation()==="landscape";
+  let L=null,Rp=null;
+  if(!land){Rp=view[i];}
+  else if(i===0){Rp=view[0];}
+  else{const a=i%2?i:i-1;L=view[a];Rp=view[a+1]??null;}
+  const pw=R.pageWidth*k, ph=R.height*k, x0=cb.left+R.left*k, y0=cb.top+R.top*k;
+  const pages=[];
+  if(L!=null)pages.push({bi:L,x:x0,y:y0,w:pw,h:ph,side:"L"});
+  if(Rp!=null)pages.push({bi:Rp,x:x0+pw,y:y0,w:pw,h:ph,side:"R"});
+  return {pages,cb,x0,y0,pw,ph};
+}
+const cornerSize=g=>Math.max(44,g.pw*0.16);
+function hit(cx,cy){
+  const g=geom(); if(!g)return null;
+  const p=g.pages.find(p=>cx>=p.x&&cx<=p.x+p.w&&cy>=p.y&&cy<=p.y+p.h); if(!p)return {g};
+  const cs=cornerSize(g), last=g.pages[g.pages.length-1], first=g.pages[0];
+  const canNext=!next.disabled, canPrev=!prev.disabled;
+  if(canNext&&p===last&&cx>p.x+p.w-cs&&cy>p.y+p.h-cs) return {g,p,corner:"next"};
+  if(canPrev&&p===first&&cx<p.x+cs&&cy>p.y+p.h-cs) return {g,p,corner:"prev"};
+  return {g,p};
+}
+function placeFolds(){
+  const g=geom(); if(!g||!g.pages.length){foldNext.hidden=foldPrev.hidden=true;return}
+  const bb=bookEl.getBoundingClientRect(), cs=cornerSize(g)*0.55, last=g.pages[g.pages.length-1], first=g.pages[0];
+  for(const [el,p,show,isNext] of [[foldNext,last,!next.disabled,true],[foldPrev,first,!prev.disabled,false]]){
+    el.hidden=!show; if(!show)continue;
+    el.style.setProperty("--f",cs+"px");
+    el.style.left=((isNext?p.x+p.w-cs:p.x)-bb.left)+"px";
+    el.style.top=(p.y+p.h-cs-bb.top)+"px";
+  }
+}
+function showLens(cx,cy,p,lx,ly){
+  if(flip.getState&&flip.getState()!=="read"){lens.hidden=true;return}
+  const L=lens.offsetWidth||parseFloat(getComputedStyle(lens).getPropertyValue("--lens"))||280;
+  const rx=cx-p.x, ry=cy-p.y;
+  lens.style.backgroundImage='url("pages/'+book[p.bi][0]+'.jpg")';
+  lens.style.backgroundSize=(p.w*ZOOM)+"px "+(p.h*ZOOM)+"px";
+  lens.style.backgroundPosition=(L/2-rx*ZOOM)+"px "+(L/2-ry*ZOOM)+"px";
+  let left=lx-L/2, top=ly-L/2;
+  left=Math.max(4,Math.min(innerWidth-L-4,left)); top=Math.max(4,Math.min(innerHeight-L-4,top));
+  lens.style.left=left+"px"; lens.style.top=top+"px"; lens.hidden=false;
+}
+function hideLens(){lens.hidden=true}
+function doCorner(c){hideLens(); if(c==="next")flip.flipNext(); else flip.flipPrev();}
+/* muis */
+bookEl.addEventListener("mousemove",e=>{
+  const h=hit(e.clientX,e.clientY);
+  bookEl.classList.toggle("corner",!!(h&&h.corner));
+  foldNext.classList.toggle("on",h&&h.corner==="next"); foldPrev.classList.toggle("on",h&&h.corner==="prev");
+  if(!h||!h.p||h.corner){hideLens();return}
+  showLens(e.clientX,e.clientY,h.p,e.clientX,e.clientY);
+});
+bookEl.addEventListener("mouseleave",()=>{hideLens();bookEl.classList.remove("corner")});
+bookEl.addEventListener("click",e=>{const h=hit(e.clientX,e.clientY);if(h&&h.corner)doCorner(h.corner)});
+/* aanraken: vergrootglas boven de vinger, tik in de hoek = omslaan */
+let tStart=null;
+bookEl.addEventListener("touchstart",e=>{
+  const t=e.touches[0], h=hit(t.clientX,t.clientY); tStart={x:t.clientX,y:t.clientY,corner:h&&h.corner,moved:false};
+  if(h&&h.p&&!h.corner){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||200)*0.75)}
+},{passive:false});
+bookEl.addEventListener("touchmove",e=>{
+  const t=e.touches[0]; if(tStart&&Math.hypot(t.clientX-tStart.x,t.clientY-tStart.y)>10)tStart.moved=true;
+  const h=hit(t.clientX,t.clientY);
+  if(h&&h.p){e.preventDefault();showLens(t.clientX,t.clientY,h.p,t.clientX,t.clientY-(lens.offsetWidth||200)*0.75)} else hideLens();
+},{passive:false});
+bookEl.addEventListener("touchend",e=>{
+  hideLens();
+  if(tStart&&tStart.corner&&!tStart.moved){e.preventDefault();doCorner(tStart.corner)}
+  tStart=null;
+});
+bookEl.addEventListener("touchcancel",()=>{hideLens();tStart=null});
+flip.on("changeState",e=>{if(e.data!=="read")hideLens(); else setTimeout(placeFolds,30)});
+flip.on("flip",()=>setTimeout(placeFolds,30));
+flip.on("changeOrientation",()=>setTimeout(placeFolds,60));
+addEventListener("resize",()=>setTimeout(placeFolds,80));
+bookEl.addEventListener("transitionend",placeFolds);
+setTimeout(placeFolds,300);
 (function(){const h=decodeURIComponent(location.hash.slice(1));if(!h)return;
   const t=TEXTS.find(x=>x.id===h);const bi=t?book.findIndex(b=>b[0]===t.pages[0]):-1;
   if(bi>0){const k=posOf(bi);flip.turnToPage(k);update(k);}})();
